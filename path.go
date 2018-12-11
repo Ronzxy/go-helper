@@ -48,3 +48,63 @@ func (this *Path) WorkName() string {
 	execPath := this.ExecPath()
 	return path.Base(strings.Replace(execPath, "\\", "/", -1))
 }
+
+// 判断文件夹是否存在
+func (this *Path) IsExist(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
+func (this *Path) Create(dir string, perm os.FileMode) error {
+	isExist, err := this.IsExist(dir)
+	if err == nil {
+		if !isExist {
+			// 创建文件夹
+			err = os.Mkdir(dir, perm)
+		}
+	}
+
+	return err
+}
+
+func (this *Path) Abs(filePath string) (string, error) {
+	return filepath.Abs(filePath)
+}
+
+func (this *Path) Dir(filePath string) (string, error) {
+	p, err := this.Abs(filePath)
+	if err == nil {
+		p = path.Dir(p)
+	}
+
+	return p, err
+}
+
+func (this *Path) FileName(filePath string) (string, error) {
+	filePath, err := this.Abs(filePath)
+	if err != nil {
+		return "", err
+	}
+
+	basePath, err := this.Dir(filePath)
+	if err == nil {
+		filePath = strings.Replace(filePath, "\\", "/", -1)
+		basePath = strings.Replace(basePath, "\\", "/", -1)
+
+		basePath = strings.Replace(filePath, basePath+"/", "", 1)
+	}
+
+	return basePath, err
+}
+
+func (this *Path) Split(filePath string) []string {
+	filePath = strings.Replace(filePath, "\\", "/", -1)
+
+	return strings.Split(filePath, "/")
+}
