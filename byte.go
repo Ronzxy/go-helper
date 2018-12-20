@@ -10,19 +10,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package util
+package helper
 
 import (
 	"strings"
 )
 
-type Byte struct{}
+type ByteHelper struct{}
 
-func NewHex() *Byte {
-	return &Byte{}
+func NewByteHelper() *ByteHelper {
+	return &ByteHelper{}
 }
 
-func (this *Byte) Byte2Hex(buf []byte) (hex []byte) {
+func (this *ByteHelper) Byte2Hex(buf []byte) (hex []byte) {
 	hex = make([]byte, len(buf)*2)
 	for i := 0; i < len(buf); i++ {
 
@@ -52,7 +52,7 @@ func (this *Byte) Byte2Hex(buf []byte) (hex []byte) {
 	return
 }
 
-func (this *Byte) Hex2Byte(hex []byte) (buf []byte) {
+func (this *ByteHelper) Hex2Byte(hex []byte) (buf []byte) {
 	buf = make([]byte, len(hex)/2)
 	for i := 0; i < len(hex); i++ {
 		s1 := strings.ToUpper(string(hex[i]))
@@ -81,7 +81,7 @@ func (this *Byte) Hex2Byte(hex []byte) (buf []byte) {
 	return
 }
 
-func (this *Byte) Byte2Bin(buf []byte) (bin []byte) {
+func (this *ByteHelper) Byte2Bin(buf []byte) (bin []byte) {
 	bin = make([]byte, len(buf)*8)
 	mask := 1 << (8 - 1)
 	for i := 0; i < len(buf); i++ {
@@ -99,7 +99,7 @@ func (this *Byte) Byte2Bin(buf []byte) (bin []byte) {
 	return
 }
 
-func (this *Byte) Bin2Byte(bin []byte) (buf []byte) {
+func (this *ByteHelper) Bin2Byte(bin []byte) (buf []byte) {
 	if (len(bin) % 8) == 0 {
 		buf = make([]byte, len(bin)/8)
 

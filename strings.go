@@ -10,18 +10,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package util
+package helper
 
-type Strings struct {}
+type StringHelper struct{}
 
-func NewStrings() *Strings {
-	return &Strings{}
+func NewStringHelper() *StringHelper {
+	return &StringHelper{}
 }
 
-func (this *Strings) Empty() string {
+func (this *StringHelper) Empty() string {
 	return ""
 }
 
-func (this *Strings) IsEmpty(str string) bool {
+func (this *StringHelper) IsEmpty(str string) bool {
 	return this.Empty() == str
 }

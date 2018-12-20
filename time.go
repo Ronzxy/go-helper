@@ -10,21 +10,21 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package util
+package helper
 
 import (
 	"strings"
 	"time"
 )
 
-type Date struct{}
+type TimeHelper struct{}
 
-func NewDate() *Date {
-	return &Date{}
+func NewTimeHelper() *TimeHelper {
+	return &TimeHelper{}
 }
 
 // Mon Jan 2 2006-01-02 15:04:05.999999999 -0700 MST
-func (this *Date) Replacer() *strings.Replacer {
+func (this *TimeHelper) Replacer() *strings.Replacer {
 	patterns := []string{
 		// less second
 		"ms", "000", // millisecond
@@ -79,19 +79,19 @@ func (this *Date) Replacer() *strings.Replacer {
 }
 
 // Format time with easy-to-understand strings, e.g. yyyy-mm-dd HH:MM:SS.ms
-func (this *Date) Format(t time.Time, format string) string {
+func (this *TimeHelper) Format(t time.Time, format string) string {
 	format = this.Replacer().Replace(format)
 
 	return t.Format(format)
 }
 
 // Use yyyy-mm-dd HH:MM:SS.ms format the time
-func (this *Date) DefaultFormat(t time.Time) string {
+func (this *TimeHelper) DefaultFormat(t time.Time) string {
 	return this.Format(t, "yyyy-mm-dd HH:MM:SS.ms")
 }
 
 // Parse time with easy-to-understand strings, e.g. yyyy-mm-dd HH:MM:SS.ms
-func (this *Date) Parse(format, value string) (time.Time, error) {
+func (this *TimeHelper) Parse(format, value string) (time.Time, error) {
 	format = this.Replacer().Replace(format)
 
 	return time.Parse(format, value)

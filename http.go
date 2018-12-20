@@ -10,7 +10,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package util
+package helper
 
 import (
 	"errors"
@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-type Http struct {
+type HttpHelper struct {
 	Method  string
 	Addr    string
 	Data    string // http POST data
@@ -33,23 +33,23 @@ type Http struct {
 	}
 }
 
-func NewHttp() *Http {
-	return &Http{}
+func NewHttpHelper() *HttpHelper {
+	return &HttpHelper{}
 }
 
-func NewHttpWithUserAgent(userAgent string) *Http {
-	http := NewHttp()
+func NewHttpWithUserAgent(userAgent string) *HttpHelper {
+	http := NewHttpHelper()
 	http.Header.UserAgent = userAgent
 
 	return http
 }
 
 // 设置 http.Request 请求头
-func (this *Http) setHeader(req *http.Request) {
+func (this *HttpHelper) setHeader(req *http.Request) {
 
 }
 
-func (this *Http) Do() (data []byte, err error) {
+func (this *HttpHelper) Do() (data []byte, err error) {
 	var (
 		req  *http.Request
 		resp *http.Response
@@ -65,13 +65,13 @@ func (this *Http) Do() (data []byte, err error) {
 		return
 	}
 
-	if NewStrings().IsEmpty(this.Header.UserAgent) {
-		req.Header.Set("User-Agent", fmt.Sprintf("%s/%d", NewPath().WorkName(), time.Now().Year()))
+	if NewStringHelper().IsEmpty(this.Header.UserAgent) {
+		req.Header.Set("User-Agent", fmt.Sprintf("%s/%d", NewPathHelper().WorkName(), time.Now().Year()))
 	} else {
 		req.Header.Set("User-Agent", this.Header.UserAgent)
 	}
 
-	if NewStrings().IsEmpty(this.Header.UserAgent) {
+	if NewStringHelper().IsEmpty(this.Header.UserAgent) {
 		req.Header.Set("Content-Type", "text/plain; charset=utf-8")
 	} else {
 		req.Header.Set("Content-Type", this.Header.ContentType)
@@ -89,14 +89,14 @@ func (this *Http) Do() (data []byte, err error) {
 	return
 }
 
-func (this *Http) GET(addr string) ([]byte, error) {
+func (this *HttpHelper) GET(addr string) ([]byte, error) {
 	this.Method = "GET"
 	this.Addr = addr
 
 	return this.Do()
 }
 
-func (this *Http) POST(addr, data string) ([]byte, error) {
+func (this *HttpHelper) POST(addr, data string) ([]byte, error) {
 	this.Method = "POST"
 	this.Addr = addr
 	this.Data = data
@@ -104,7 +104,7 @@ func (this *Http) POST(addr, data string) ([]byte, error) {
 	return this.Do()
 }
 
-func (this *Http) PostForm(addr string, data url.Values) ([]byte, error) {
+func (this *HttpHelper) PostForm(addr string, data url.Values) ([]byte, error) {
 	this.Method = "POST"
 	this.Addr = addr
 	this.Data = data.Encode()

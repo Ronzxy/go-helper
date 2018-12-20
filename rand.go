@@ -10,7 +10,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package util
+package helper
 
 import (
 	"fmt"
@@ -19,13 +19,13 @@ import (
 	"time"
 )
 
-type Rand struct{}
+type RandHelper struct{}
 
-func NewRand() *Rand {
-	return &Rand{}
+func NewRandHelper() *RandHelper {
+	return &RandHelper{}
 }
 
-func (this *Rand) Num(length int) int64 {
+func (this *RandHelper) Num(length int) int64 {
 	var s string
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	p := r.Perm(length)
@@ -39,7 +39,7 @@ func (this *Rand) Num(length int) int64 {
 }
 
 //生成随机字符串
-func (this *Rand) Bytes(length int) []byte {
+func (this *RandHelper) Bytes(length int) []byte {
 	buf := make([]byte, 0)
 	str := []byte("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+=/")
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -50,7 +50,7 @@ func (this *Rand) Bytes(length int) []byte {
 }
 
 //生成随机字符串
-func (this *Rand) String(length int) string {
+func (this *RandHelper) String(length int) string {
 	buf := this.Bytes(length)
 	return string(buf)
 }

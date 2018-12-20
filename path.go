@@ -10,7 +10,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package util
+package helper
 
 import (
 	"os"
@@ -20,13 +20,13 @@ import (
 	"strings"
 )
 
-type Path struct{}
+type PathHelper struct{}
 
-func NewPath() *Path {
-	return &Path{}
+func NewPathHelper() *PathHelper {
+	return &PathHelper{}
 }
 
-func (this *Path) ExecPath() string {
+func (this *PathHelper) ExecPath() string {
 	file, err := exec.LookPath(os.Args[0])
 	if err != nil {
 		return ""
@@ -39,18 +39,18 @@ func (this *Path) ExecPath() string {
 }
 
 // WorkDir returns absolute path of work directory.
-func (this *Path) WorkDir() string {
+func (this *PathHelper) WorkDir() string {
 	execPath := this.ExecPath()
 	return path.Dir(strings.Replace(execPath, "\\", "/", -1))
 }
 
-func (this *Path) WorkName() string {
+func (this *PathHelper) WorkName() string {
 	execPath := this.ExecPath()
 	return path.Base(strings.Replace(execPath, "\\", "/", -1))
 }
 
 // 判断文件夹是否存在
-func (this *Path) IsExist(path string) (bool, error) {
+func (this *PathHelper) IsExist(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true, nil
@@ -61,7 +61,7 @@ func (this *Path) IsExist(path string) (bool, error) {
 	return false, err
 }
 
-func (this *Path) Create(dir string, perm os.FileMode) error {
+func (this *PathHelper) Create(dir string, perm os.FileMode) error {
 	isExist, err := this.IsExist(dir)
 	if err == nil {
 		if !isExist {
@@ -73,11 +73,11 @@ func (this *Path) Create(dir string, perm os.FileMode) error {
 	return err
 }
 
-func (this *Path) Abs(filePath string) (string, error) {
+func (this *PathHelper) Abs(filePath string) (string, error) {
 	return filepath.Abs(filePath)
 }
 
-func (this *Path) Dir(filePath string) (string, error) {
+func (this *PathHelper) Dir(filePath string) (string, error) {
 	p, err := this.Abs(filePath)
 	if err == nil {
 		p = path.Dir(p)
@@ -86,7 +86,7 @@ func (this *Path) Dir(filePath string) (string, error) {
 	return p, err
 }
 
-func (this *Path) FileName(filePath string) (string, error) {
+func (this *PathHelper) FileName(filePath string) (string, error) {
 	filePath, err := this.Abs(filePath)
 	if err != nil {
 		return "", err
@@ -103,7 +103,7 @@ func (this *Path) FileName(filePath string) (string, error) {
 	return basePath, err
 }
 
-func (this *Path) Split(filePath string) []string {
+func (this *PathHelper) Split(filePath string) []string {
 	filePath = strings.Replace(filePath, "\\", "/", -1)
 
 	return strings.Split(filePath, "/")
