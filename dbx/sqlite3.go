@@ -12,27 +12,27 @@
 
 package dbx
 
-// // 如果编译时间过长，不使用时可注释
-// import (
-// 	"github.com/go-xorm/xorm"
-// 	_ "github.com/mattn/go-sqlite3"
-// )
+// 如果编译时间过长，不使用时可注释
+import (
+	"github.com/go-xorm/xorm"
+	_ "github.com/mattn/go-sqlite3"
+)
 
-// type Sqlite3 struct {
-// 	Datafile string
-// 	Conn     *xorm.Engine
-// }
+type Sqlite3 struct {
+	Datafile string
+	Conn     *xorm.Engine
+}
 
-// func NewSqlite3() *Sqlite3 {
-// 	return &Sqlite3{}
-// }
+func NewSqlite3() *Sqlite3 {
+	return &Sqlite3{}
+}
 
-// func (this *Sqlite3) Init() error {
-// 	var (
-// 		err error
-// 	)
+func (this *Sqlite3) Init() error {
+	var (
+		err error
+	)
 
-// 	this.Conn, err = xorm.NewEngine("sqlite3", this.Datafile)
+	this.Conn, err = xorm.NewEngine("sqlite3", this.Datafile)
 
-// 	return err
-// }
+	return err
+}
