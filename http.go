@@ -34,19 +34,14 @@ type HttpHelper struct {
 }
 
 func NewHttpHelper() *HttpHelper {
-	return &HttpHelper{}
+	return NewHttpHelperWithUserAgent(fmt.Sprintf("%s/%d", NewPathHelper().WorkName(), time.Now().Year()))
 }
 
-func NewHttpWithUserAgent(userAgent string) *HttpHelper {
+func NewHttpHelperWithUserAgent(userAgent string) *HttpHelper {
 	http := NewHttpHelper()
 	http.Header.UserAgent = userAgent
 
 	return http
-}
-
-// 设置 http.Request 请求头
-func (this *HttpHelper) setHeader(req *http.Request) {
-
 }
 
 func (this *HttpHelper) Do() (data []byte, err error) {
@@ -114,7 +109,7 @@ func (this *HttpHelper) PostForm(addr string, data url.Values) ([]byte, error) {
 	return this.Do()
 }
 
-func RemoteAddr(req *http.Request) string {
+func (this *HttpHelper) RemoteAddr(req *http.Request) string {
 	addr := req.Header.Get("X-Real-IP")
 	if len(addr) == 0 {
 		addr = req.Header.Get("X-Forwarded-For")
