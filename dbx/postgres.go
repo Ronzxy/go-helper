@@ -15,9 +15,9 @@ package dbx
 // 如果编译时间过长，不使用时可注释
 import (
 	"fmt"
-
 	"github.com/go-xorm/xorm"
 	_ "github.com/lib/pq"
+	"github.com/skygangsta/go-helper"
 )
 
 type Postgres struct {
@@ -29,11 +29,30 @@ type Postgres struct {
 	MaxIdleConns int
 	MaxOpenConns int
 	Timeout      int
+	AppName      string
 	Conn         *xorm.Engine
 }
 
 func NewPostgres() *Postgres {
 	return &Postgres{}
+}
+
+func (this *Postgres) DriverName() string {
+	return "postgres"
+}
+
+func (this *Postgres) ConnString() string {
+	connString := fmt.Sprintf("%s://%s:%s@%s:%d/%s?sslmode=disable&application_name=%s&connect_timeout=%d",
+		this.DriverName(),
+		this.Dba,
+		this.Pwd,
+		this.Host,
+		this.Port,
+		this.DbName,
+		this.AppName,
+		this.Timeout)
+
+	return connString
 }
 
 func (this *Postgres) Init() error {
@@ -45,14 +64,11 @@ func (this *Postgres) Init() error {
 		this.Timeout = 10
 	}
 
-	this.Conn, err = xorm.NewEngine("postgres",
-		fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable&connect_timeout=%d",
-			this.Dba,
-			this.Pwd,
-			this.Host,
-			this.Port,
-			this.DbName,
-			this.Timeout))
+	if this.AppName == "" {
+		this.AppName = helper.NewPathHelper().WorkName()
+	}
+
+	this.Conn, err = xorm.NewEngine(this.DriverName(), this.ConnString())
 	if err == nil {
 		this.Conn.SetMaxIdleConns(this.MaxIdleConns)
 		this.Conn.SetMaxOpenConns(this.MaxOpenConns)
