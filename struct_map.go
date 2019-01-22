@@ -17,7 +17,10 @@ import (
 	"reflect"
 )
 
-type StructMapHelper struct{}
+type StructMapHelper struct {
+	Name  string `map:"Name"`  // example
+	Value string `map:"Value"` // example
+}
 
 func NewStructMapHelper() *StructMapHelper {
 	return &StructMapHelper{}
