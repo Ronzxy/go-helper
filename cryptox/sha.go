@@ -14,6 +14,7 @@ package cryptox
 
 import (
 	"crypto/md5"
+	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/base64"
@@ -42,6 +43,22 @@ func (this *Sha) Md5ToBase64String(text string) string {
 	return base64.StdEncoding.EncodeToString(this.Md5([]byte(text)))
 }
 
+// sha1
+func (this *Sha) Sha1(buf []byte) []byte {
+	ctx := sha1.New()
+	ctx.Write(buf)
+
+	return ctx.Sum(nil)
+}
+
+func (this *Sha) Sha1ToHexString(text string) string {
+	return hex.EncodeToString(this.Sha1([]byte(text)))
+}
+
+func (this *Sha) Sha1ToBase64String(text string) string {
+	return base64.StdEncoding.EncodeToString(this.Sha1([]byte(text)))
+}
+
 // sha256
 func (this *Sha) Sha256(buf []byte) []byte {
 	ctx := sha256.New()
@@ -67,9 +84,9 @@ func (this *Sha) Sha512(buf []byte) []byte {
 }
 
 func (this *Sha) Sha512ToHexString(text string) string {
-	return hex.EncodeToString(this.Md5([]byte(text)))
+	return hex.EncodeToString(this.Sha512([]byte(text)))
 }
 
 func (this *Sha) Sha512ToBase64String(text string) string {
-	return base64.StdEncoding.EncodeToString(this.Md5([]byte(text)))
+	return base64.StdEncoding.EncodeToString(this.Sha512([]byte(text)))
 }
