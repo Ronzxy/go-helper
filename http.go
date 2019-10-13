@@ -13,100 +13,144 @@
 package helper
 
 import (
-	"errors"
+	"crypto/tls"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 )
 
+var Http = NewHttpHelper(90, false)
+
 type HttpHelper struct {
-	Method  string
-	Addr    string
-	Data    string // http POST data
-	Timeout int    // http timeout second
-	Header  struct {
-		UserAgent   string
-		ContentType string // "text/json; charset=utf-8"
+	client    *http.Client
+	UserAgent string
+}
+
+func NewHttpHelper(timeout int, insecure bool) *HttpHelper {
+	this := &HttpHelper{}
+
+	this.client = &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   time.Duration(timeout) * time.Second,
+				KeepAlive: time.Duration(timeout) * time.Second,
+			}).DialContext,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: insecure,
+			},
+			MaxIdleConns:        64,
+			MaxIdleConnsPerHost: 64,
+			IdleConnTimeout:     time.Duration(timeout) * time.Second,
+		},
 	}
+
+	return this
 }
 
-func NewHttpHelper() *HttpHelper {
-	return NewHttpHelperWithUserAgent(fmt.Sprintf("%s/%d", NewPathHelper().WorkName(), time.Now().Year()))
+func (this *HttpHelper) Do(r *http.Request) (*http.Response, error) {
+
+	return this.client.Do(r)
 }
 
-func NewHttpHelperWithUserAgent(userAgent string) *HttpHelper {
-	http := NewHttpHelper()
-	http.Header.UserAgent = userAgent
-
-	return http
-}
-
-func (this *HttpHelper) Do() (data []byte, err error) {
+func (this *HttpHelper) NewRequest(method, addr string, body io.Reader) (*http.Request, error) {
 	var (
-		req  *http.Request
-		resp *http.Response
-
-		client = &http.Client{
-			Timeout: time.Duration(this.Timeout) * time.Second,
-		}
+		r   *http.Request
+		err error
 	)
 
-	req, err = http.NewRequest(this.Method, this.Addr, strings.NewReader(this.Data))
+	r, err = http.NewRequest(method, addr, body)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("http.NewRequest - %s", err.Error()))
-		return
+		return nil, err
 	}
 
-	if NewStringHelper().IsEmpty(this.Header.UserAgent) {
-		req.Header.Set("User-Agent", fmt.Sprintf("%s/%d", NewPathHelper().WorkName(), time.Now().Year()))
-	} else {
-		req.Header.Set("User-Agent", this.Header.UserAgent)
+	if NewStringHelper().IsNotEmpty(this.UserAgent) {
+		r.Header.Set("User-Agent", this.UserAgent)
 	}
 
-	if NewStringHelper().IsEmpty(this.Header.UserAgent) {
-		req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	} else {
-		req.Header.Set("Content-Type", this.Header.ContentType)
-	}
-
-	resp, err = client.Do(req)
-	if err != nil {
-		err = errors.New(fmt.Sprintf("client.Do - %s", err.Error()))
-		return
-	}
-
-	data, err = ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
-
-	return
+	return r, nil
 }
 
-func (this *HttpHelper) GET(addr string) ([]byte, error) {
-	this.Method = "GET"
-	this.Addr = addr
+func (this *HttpHelper) Get(addr string) ([]byte, error) {
+	var (
+		request  *http.Request
+		response *http.Response
+		err      error
+	)
 
-	return this.Do()
+	request, err = this.NewRequest("GET", addr, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err = this.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("server return status code %d", response.StatusCode)
+	}
+
+	return ioutil.ReadAll(response.Body)
 }
 
-func (this *HttpHelper) POST(addr, data string) ([]byte, error) {
-	this.Method = "POST"
-	this.Addr = addr
-	this.Data = data
+func (this *HttpHelper) Post(addr string, body io.Reader) ([]byte, error) {
+	var (
+		request  *http.Request
+		response *http.Response
+		err      error
+	)
 
-	return this.Do()
+	request, err = this.NewRequest("POST", addr, body)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err = this.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("server return status code %d", response.StatusCode)
+	}
+
+	return ioutil.ReadAll(response.Body)
 }
 
 func (this *HttpHelper) PostForm(addr string, data url.Values) ([]byte, error) {
-	this.Method = "POST"
-	this.Addr = addr
-	this.Data = data.Encode()
+	var (
+		request  *http.Request
+		response *http.Response
+		err      error
+	)
 
-	this.Header.ContentType = "application/x-www-form-urlencoded"
+	request, err = this.NewRequest("POST", addr, strings.NewReader(data.Encode()))
+	if err != nil {
+		return nil, err
+	}
 
-	return this.Do()
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err = this.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("server return status code %d", response.StatusCode)
+	}
+
+	return ioutil.ReadAll(response.Body)
 }
 
 func (this *HttpHelper) RemoteAddr(req *http.Request) string {
