@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+var File = NewFileHelper()
+
 type FileHelper struct{}
 
 func NewFileHelper() *FileHelper {
@@ -84,6 +86,31 @@ func (this *FileHelper) GZipFile(src, dst string) error {
 
 		gw.Write(bytes[:n])
 		gw.Flush()
+	}
+
+	return nil
+}
+
+func (this *FileHelper) Save(fileName string, body []byte) error {
+	var (
+		file *os.File
+		n    int
+		err  error
+	)
+
+	file, err = os.OpenFile(fileName, os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	n, err = file.Write(body)
+	if err != nil {
+		return err
+	}
+
+	if n == len(body) {
+		return file.Sync()
 	}
 
 	return nil

@@ -19,6 +19,8 @@ import (
 	"time"
 )
 
+var Rand = NewRandHelper()
+
 type RandHelper struct{}
 
 func NewRandHelper() *RandHelper {

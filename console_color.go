@@ -12,6 +12,8 @@
 
 package helper
 
+var ConsoleColor = NewConsoleColorHelper()
+
 type ConsoleColorHelper struct{}
 
 func NewConsoleColorHelper() *ConsoleColorHelper {

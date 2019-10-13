@@ -20,6 +20,8 @@ import (
 	"strings"
 )
 
+var Path = NewPathHelper()
+
 type PathHelper struct{}
 
 func NewPathHelper() *PathHelper {
@@ -55,22 +57,26 @@ func (this *PathHelper) IsExist(path string) (bool, error) {
 	if err == nil {
 		return true, nil
 	}
+
 	if os.IsNotExist(err) {
 		return false, nil
 	}
+
 	return false, err
 }
 
 func (this *PathHelper) Create(dir string, perm os.FileMode) error {
 	isExist, err := this.IsExist(dir)
-	if err == nil {
-		if !isExist {
-			// 创建文件夹
-			err = os.Mkdir(dir, perm)
-		}
+	if err != nil {
+		return err
 	}
 
-	return err
+	if !isExist {
+		// 创建文件夹
+		return os.Mkdir(dir, perm)
+	}
+
+	return nil
 }
 
 func (this *PathHelper) Abs(filePath string) (string, error) {
@@ -97,7 +103,7 @@ func (this *PathHelper) FileName(filePath string) (string, error) {
 		filePath = strings.Replace(filePath, "\\", "/", -1)
 		basePath = strings.Replace(basePath, "\\", "/", -1)
 
-		basePath = strings.Replace(filePath, basePath+"/", "", 1)
+		basePath = filePath[len(basePath)+1:]
 	}
 
 	return basePath, err
@@ -107,4 +113,28 @@ func (this *PathHelper) Split(filePath string) []string {
 	filePath = strings.Replace(filePath, "\\", "/", -1)
 
 	return strings.Split(filePath, "/")
+}
+
+func (this *PathHelper) CreateDir(filePath string, perm os.FileMode) error {
+	var (
+		dirs []string
+		err  error
+	)
+	dirs = this.Split(filePath)
+
+	filePath = ""
+	for _, v := range dirs {
+		if v == "" {
+			filePath = "/"
+		} else {
+			filePath = path.Join(filePath, v)
+
+			err = this.Create(filePath, perm)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

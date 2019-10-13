@@ -17,6 +17,8 @@ import (
 	"time"
 )
 
+var Time = NewTimeHelper()
+
 type TimeHelper struct{}
 
 func NewTimeHelper() *TimeHelper {
@@ -24,7 +26,10 @@ func NewTimeHelper() *TimeHelper {
 }
 
 // Mon Jan 2 2006-01-02 15:04:05.999999999 -0700 MST
-func (this *TimeHelper) Replacer() *strings.Replacer {
+//
+// Thu, 10 Oct 2019 11:01:41 +0800 	--- w, dd J yyyy HH:MM:SS zz
+// 2017-05-11 20:29:16 +0800 CST	---	yyyy-mm-dd HH:MM:SS zz G
+func (this *TimeHelper) replacer() *strings.Replacer {
 	patterns := []string{
 		// less second
 		"ms", "000", // millisecond
@@ -79,20 +84,38 @@ func (this *TimeHelper) Replacer() *strings.Replacer {
 }
 
 // Format time with easy-to-understand strings, e.g. yyyy-mm-dd HH:MM:SS.ms
-func (this *TimeHelper) Format(t time.Time, format string) string {
-	format = this.Replacer().Replace(format)
+func (this *TimeHelper) Format(format string, t time.Time) string {
+	format = this.replacer().Replace(format)
 
 	return t.Format(format)
 }
 
 // Use yyyy-mm-dd HH:MM:SS.ms format the time
 func (this *TimeHelper) DefaultFormat(t time.Time) string {
-	return this.Format(t, "yyyy-mm-dd HH:MM:SS.ms")
+	return this.Format("yyyy-mm-dd HH:MM:SS.ms", t)
 }
 
 // Parse time with easy-to-understand strings, e.g. yyyy-mm-dd HH:MM:SS.ms
 func (this *TimeHelper) Parse(format, value string) (time.Time, error) {
-	format = this.Replacer().Replace(format)
+	format = this.replacer().Replace(format)
 
 	return time.Parse(format, value)
+}
+
+// Convert time to the given location
+func (this *TimeHelper) ConvertLocation(t time.Time, name string) (time.Time, error) {
+	var (
+		z   *time.Location
+		err error
+	)
+
+	z, err = time.LoadLocation(name)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	// Convert to Unix time for formatted time format
+	t = time.Unix(0, t.UnixNano())
+	str := this.Format("yyyy-mm-dd HH:MM:SS.ns zz G", t)
+	return time.ParseInLocation(this.replacer().Replace("yyyy-mm-dd HH:MM:SS.ns zz G"), str, z)
 }

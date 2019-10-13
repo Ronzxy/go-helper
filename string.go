@@ -12,6 +12,8 @@
 
 package helper
 
+var String = NewStringHelper()
+
 type StringHelper struct{}
 
 func NewStringHelper() *StringHelper {
@@ -24,4 +26,20 @@ func (this *StringHelper) Empty() string {
 
 func (this *StringHelper) IsEmpty(str string) bool {
 	return this.Empty() == str
+}
+
+func (this *StringHelper) IsNotEmpty(str string) bool {
+	return this.Empty() != str
+}
+
+func (this *StringHelper) IsEqual(str, equal string) bool {
+	if len(str) != len(equal) {
+		return false
+	}
+
+	return str == equal
+}
+
+func (this *StringHelper) IsNotEqual(str, equal string) bool {
+	return !this.IsEqual(str, equal)
 }
