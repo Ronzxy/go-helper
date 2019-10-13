@@ -10,29 +10,42 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package dbx
+package orm
 
-// 如果编译时间过长，不使用时可注释
 import (
-	"github.com/go-xorm/xorm"
-	_ "github.com/mattn/go-sqlite3"
+	"fmt"
+
+	"github.com/xuyu/goredis"
 )
 
-type Sqlite3 struct {
-	Datafile string
-	Conn     *xorm.Engine
+type Redis struct {
+	Auth    string `yaml:"Auth"`
+	Host    string `yaml:"Host"`
+	Port    int    `yaml:"Port"`
+	DbIndex int    `yaml:"DbIndex"`
+	Timeout string `yaml:"Timeout"`
+	Maxidle int    `yaml:"Maxidle"`
+
+	// Instance
+	Conn *goredis.Redis
 }
 
-func NewSqlite3() *Sqlite3 {
-	return &Sqlite3{}
+func NewRedis() *Redis {
+	return &Redis{}
 }
 
-func (this *Sqlite3) Init() error {
+func (this *Redis) Connect() error {
 	var (
 		err error
 	)
 
-	this.Conn, err = xorm.NewEngine("sqlite3", this.Datafile)
+	this.Conn, err = goredis.DialURL(fmt.Sprintf("tcp://auth:%s@%s:%d/%d?timeout=%s&maxidle=%d",
+		this.Auth,
+		this.Host,
+		this.Port,
+		this.DbIndex,
+		this.Timeout,
+		this.Maxidle))
 
 	return err
 }

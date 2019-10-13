@@ -2,7 +2,7 @@
  * This file copy from https://github.com/qyxing/ostar/blob/master/codec/rsa_ext.go
  * It's license same with upstream.
  */
-package cryptox
+package algo
 
 import (
 	"bytes"

@@ -10,55 +10,58 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package cryptox
+package algo
 
 import (
+	"crypto/aes"
 	"crypto/cipher"
-	"crypto/des"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
 )
 
-type DES struct {
+type AES struct {
 	block cipher.Block
 	iv    []byte
 }
 
-/* creates and returns a new DES. The key argument should be the 8 bytes DES key.
+/* creates and returns a new AES. The key argument should be the AES key,
+ * either 16, 24, or 32 bytes to select AES-128, AES-192, or AES-256.
  * The length of iv must be the same as the Block's block size.
  *
- * @param key   the AES key
- * @param iv    the iv key
+ * @param key   	The AES key
+ * @param iv    	The iv key
  *
  * @return *AES		AES instance
  * @return error	Errors encountered
+ *
  */
-func NewDES(key, iv []byte) (*DES, error) {
+func NewAES(key, iv []byte) (*AES, error) {
 	var (
-		this *DES = &DES{}
+		this = &AES{}
 		err  error
 	)
 
-	err = this.DESInit(key, iv)
+	err = this.AESInit(key, iv)
 
 	return this, err
 }
 
-/* 初始化 DES 实例，密钥必须 16 字节
+/* 初始化 AES 实例，16, 24, 或 32 字节来选择 AES-128, AES-192, 或 AES-256
  *
- * @param key 		DES 加解密密钥
- * @param iv 		8 字节 CBC 初始化向量
+ * @param key 		AES 加解密密钥
+ * @param iv 		16 字节 CBC 初始化向量
  *
  * @return error	遇到的错误
  *
  */
-func (this *DES) DESInit(key, iv []byte) error {
+func (this *AES) AESInit(key, iv []byte) error {
 	var (
+		//this *AES = &AES{}
 		err error
 	)
 
-	this.block, err = des.NewCipher(key)
+	this.block, err = aes.NewCipher(key)
 	if err != nil {
 		return err
 	}
@@ -79,26 +82,28 @@ func (this *DES) DESInit(key, iv []byte) error {
  * @return cipher.Block 	AES使用的block
  *
  */
-func (this *DES) GetBlock() cipher.Block {
+func (this *AES) GetBlock() cipher.Block {
 	return this.block
 }
 
-/* 获取 DES 加密块长度
+/* 获取 AES 加密块长度
  *
- * @return int 				DES 加密块长度
+ * @return int 				AES 加密块长度
  *
  */
-func (this *DES) GetBlockSize() int {
+func (this *AES) GetBlockSize() int {
 	return this.block.BlockSize()
 }
 
-/* 加密明文
+/* 加密
+ *
  * @param inputBuf 	要加密的明文数据
  * @param p 		数据填充方式
  *
- * @return []byte 明文
+ * @return []byte 	加密后的数据
+ *
  */
-func (this *DES) Encrypt(inputBuf []byte, p int) []byte {
+func (this *AES) Encrypt(inputBuf []byte, p int) []byte {
 	var (
 		buf       []byte
 		outputBuf []byte
@@ -126,13 +131,15 @@ func (this *DES) Encrypt(inputBuf []byte, p int) []byte {
 	return outputBuf
 }
 
-/* 解密密文
+/* 解密
+ *
  * @param inputBuf	要解密的密文数据
  * @param p			数据填充方式
  *
- * @return []byte 明文
+ * @return []byte 	解密后的数据
+ *
  */
-func (this *DES) Decrypt(inputBuf []byte, p int) []byte {
+func (this *AES) Decrypt(inputBuf []byte, p int) []byte {
 	var (
 		length    int
 		buf       []byte
@@ -168,20 +175,31 @@ func (this *DES) Decrypt(inputBuf []byte, p int) []byte {
 	return outputBuf
 }
 
-/** 解密字符密文
+/* 加密数据并返回 hex 格式的密文
+ *
  * @param inputBuf 	要加密的数据
- * @param p 		数据填充方式 */
-func (this *DES) EncryptToHexString(inputBuf []byte, p int) string {
+ * @param p 		数据填充方式
+ *
+ * @return string 	hex 格式的密文
+ *
+ */
+func (this *AES) EncryptToHexString(inputBuf []byte, p int) string {
 	buf := this.Encrypt(inputBuf, p)
 	outputStr := hex.EncodeToString(buf)
 
 	return outputStr
 }
 
-/** 解密密文
- * @param inputStr 	要解密的Hex编码密文字符
- * @param p 		数据填充方式 */
-func (this *DES) DecryptFromHexString(inputStr string, p int) ([]byte, error) {
+/* 解密 hex 格式的密文
+ *
+ * @param inputBuf 	要解密的Hex编码密文字符
+ * @param p 		数据填充方式
+ *
+ * @return []byte   解密后的数据
+ * @return error	解密中出现的错误信息
+ *
+ */
+func (this *AES) DecryptFromHexString(inputStr string, p int) ([]byte, error) {
 	buf, err := hex.DecodeString(inputStr)
 	if err != nil {
 		return nil, err
@@ -191,20 +209,31 @@ func (this *DES) DecryptFromHexString(inputStr string, p int) ([]byte, error) {
 	return outputBuf, nil
 }
 
-/** 解密字符密文
- * @param inputBuf 要加密的数据
- * @param p 	数据填充方式 */
-func (this *DES) EncryptToBase64String(inputBuf []byte, p int) string {
+/* 加密数据并返回 base64 格式的密文
+ *
+ * @param inputBuf 	要加密的数据
+ * @param p 		数据填充方式
+ *
+ * @return string 	base64 格式的密文
+ *
+ */
+func (this *AES) EncryptToBase64String(inputBuf []byte, p int) string {
 	buf := this.Encrypt(inputBuf, p)
 	outputStr := base64.StdEncoding.EncodeToString(buf)
 
 	return outputStr
 }
 
-/** 解密密文
- * @param inputStr 	要解密的Base64编码密文字符
- * @param p 		数据填充方式 */
-func (this *DES) DecryptFromBase64String(inputStr string, p int) ([]byte, error) {
+/* 解密 base64 格式的密文
+ *
+ * @param inputBuf 	要解密的 base64 编码密文字符
+ * @param p 		数据填充方式
+ *
+ * @return []byte   解密后的数据
+ * @return error	解密中出现的错误信息
+ *
+ */
+func (this *AES) DecryptFromBase64String(inputStr string, p int) ([]byte, error) {
 	buf, err := base64.StdEncoding.DecodeString(inputStr)
 	if err != nil {
 		return nil, err
@@ -218,13 +247,15 @@ func (this *DES) DecryptFromBase64String(inputStr string, p int) ([]byte, error)
 // AES_CBC
 //
 
-/** 解密密文
- * @param inputBuf 	要解密的密文数据
- * @param p			数据填充方式
+/* CBC 加密
  *
- * @return []byte 密文
+ * @param inputBuf 	要加密的明文数据
+ * @param p 		数据填充方式
+ *
+ * @return []byte 	加密后的数据
+ *
  */
-func (this *DES) CBCEncrypt(inputBuf []byte, p int) []byte {
+func (this *AES) CBCEncrypt(inputBuf []byte, p int) []byte {
 	var (
 		outputBuf []byte
 	)
@@ -248,13 +279,15 @@ func (this *DES) CBCEncrypt(inputBuf []byte, p int) []byte {
 	return outputBuf
 }
 
-/* 解密密文
+/* CBC 解密
+ *
  * @param inputBuf	要解密的密文数据
  * @param p			数据填充方式
  *
- * @return []byte 明文
+ * @return []byte 	解密后的数据
+ *
  */
-func (this *DES) CBCDecrypt(inputBuf []byte, p int) []byte {
+func (this *AES) CBCDecrypt(inputBuf []byte, p int) []byte {
 	var (
 		outputBuf []byte
 	)
@@ -275,10 +308,15 @@ func (this *DES) CBCDecrypt(inputBuf []byte, p int) []byte {
 	return outputBuf
 }
 
-/** 解密字符密文
+/* CBC 加密数据并返回 hex 格式的密文
+ *
  * @param inputBuf 	要加密的数据
- * @param p 		数据填充方式 */
-func (this *DES) CBCEncryptToHexString(inputBuf []byte, p int) string {
+ * @param p 		数据填充方式
+ *
+ * @return string 	hex 格式的密文
+ *
+ */
+func (this *AES) CBCEncryptToHexString(inputBuf []byte, p int) string {
 	var (
 		buf       []byte
 		outputStr string
@@ -290,10 +328,16 @@ func (this *DES) CBCEncryptToHexString(inputBuf []byte, p int) string {
 	return outputStr
 }
 
-/** 解密密文
- * @param inputStr 	要解密的Hex编码密文数据
- * @param p 		数据填充方式 */
-func (this *DES) CBCDecryptFromHexString(inputStr string, p int) ([]byte, error) {
+/* CBC 解密 hex 格式的密文
+ *
+ * @param inputBuf 	要解密的Hex编码密文字符
+ * @param p 		数据填充方式
+ *
+ * @return []byte   解密后的数据
+ * @return error	解密中出现的错误信息
+ *
+ */
+func (this *AES) CBCDecryptFromHexString(inputStr string, p int) ([]byte, error) {
 	var (
 		buf       []byte
 		outputBuf []byte
@@ -310,10 +354,15 @@ func (this *DES) CBCDecryptFromHexString(inputStr string, p int) ([]byte, error)
 	return outputBuf, nil
 }
 
-/** 解密字符密文
+/* CBC 加密数据并返回 base64 格式的密文
+ *
  * @param inputBuf 	要加密的数据
- * @param p 		数据填充方式 */
-func (this *DES) CBCEncryptToBase64String(inputBuf []byte, p int) string {
+ * @param p 		数据填充方式
+ *
+ * @return string 	base64 格式的密文
+ *
+ */
+func (this *AES) CBCEncryptToBase64String(inputBuf []byte, p int) string {
 	var (
 		buf       []byte
 		outputStr string
@@ -325,10 +374,16 @@ func (this *DES) CBCEncryptToBase64String(inputBuf []byte, p int) string {
 	return outputStr
 }
 
-/** 解密密文
- * @param inputStr 	要解密的Base64编码密文数据
- * @param p 		数据填充方式 */
-func (this *DES) CBCDecryptFromBase64String(inputStr string, p int) ([]byte, error) {
+/* CBC 解密 base64 格式的密文
+ *
+ * @param inputBuf 	要解密的 base64 编码密文字符
+ * @param p 		数据填充方式
+ *
+ * @return []byte   解密后的数据
+ * @return error	解密中出现的错误信息
+ *
+ */
+func (this *AES) CBCDecryptFromBase64String(inputStr string, p int) ([]byte, error) {
 	var (
 		buf       []byte
 		outputBuf []byte

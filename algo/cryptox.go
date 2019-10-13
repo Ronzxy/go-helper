@@ -10,7 +10,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package cryptox
+package algo
 
 const (
 	PADDING_ZERO  = 0

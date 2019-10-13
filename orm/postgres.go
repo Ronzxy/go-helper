@@ -10,31 +10,57 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package dbx
+package orm
 
-// 如果编译时间过长，不使用时可注释
 import (
 	"fmt"
 	"github.com/go-xorm/xorm"
 	_ "github.com/lib/pq"
 	"github.com/skygangsta/go-helper"
+	"time"
 )
 
 type Postgres struct {
-	Host         string
-	Port         int
-	DbName       string
-	Dba          string
-	Pwd          string
-	MaxIdleConns int
-	MaxOpenConns int
-	Timeout      int
-	AppName      string
-	Conn         *xorm.Engine
+	Host            string `yaml:"Host"`
+	Port            int    `yaml:"Port"`
+	DbName          string `yaml:"DbName"`
+	Username        string `yaml:"Username"`
+	Password        string `yaml:"Password"`
+	MaxIdleConns    int    `yaml:"MaxIdleConns"`
+	MaxOpenConns    int    `yaml:"MaxOpenConns"`
+	ConnMaxLifetime int    `yaml:"ConnMaxLifetime"`
+	Timeout         int    `yaml:"Timeout"`
+	AppName         string `yaml:"AppName"`
+	IsCitus         bool   `yaml:"IsCitus"`
+	// Instance
+	Conn *xorm.Engine
 }
 
 func NewPostgres() *Postgres {
 	return &Postgres{}
+}
+
+func (this *Postgres) init() {
+	if this.Timeout <= 0 {
+		this.Timeout = 10
+	}
+
+	if this.AppName == "" {
+		this.AppName = helper.NewPathHelper().WorkName()
+	}
+
+	if this.MaxIdleConns <= 0 {
+		this.MaxIdleConns = 5
+	}
+
+	if this.MaxOpenConns <= 0 {
+		this.MaxOpenConns = 1024
+	}
+
+	if this.ConnMaxLifetime <= 0 {
+		// default 60s
+		this.ConnMaxLifetime = 60000
+	}
 }
 
 func (this *Postgres) DriverName() string {
@@ -44,8 +70,8 @@ func (this *Postgres) DriverName() string {
 func (this *Postgres) ConnString() string {
 	connString := fmt.Sprintf("%s://%s:%s@%s:%d/%s?sslmode=disable&application_name=%s&connect_timeout=%d",
 		this.DriverName(),
-		this.Dba,
-		this.Pwd,
+		this.Username,
+		this.Password,
 		this.Host,
 		this.Port,
 		this.DbName,
@@ -55,23 +81,18 @@ func (this *Postgres) ConnString() string {
 	return connString
 }
 
-func (this *Postgres) Init() error {
+func (this *Postgres) Connect() error {
 	var (
 		err error
 	)
 
-	if this.Timeout == 0 {
-		this.Timeout = 10
-	}
-
-	if this.AppName == "" {
-		this.AppName = helper.NewPathHelper().WorkName()
-	}
+	this.init()
 
 	this.Conn, err = xorm.NewEngine(this.DriverName(), this.ConnString())
 	if err == nil {
 		this.Conn.SetMaxIdleConns(this.MaxIdleConns)
 		this.Conn.SetMaxOpenConns(this.MaxOpenConns)
+		this.Conn.SetConnMaxLifetime(time.Duration(this.ConnMaxLifetime))
 	}
 
 	return err
