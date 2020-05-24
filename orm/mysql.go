@@ -1,4 +1,4 @@
-/* Copyright 2016 sky<skygangsta@hotmail.com>. All rights reserved.
+/* Copyright 2016 Ron Zhang <ronzxy@hotmail.com>. All rights reserved.
  *
  * Licensed under the Apache License, version 2.0 (the "License").
  * You may not use this work except in compliance with the License, which is
@@ -16,7 +16,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
-	"github.com/skygangsta/go-helper"
+	"github.com/ronzxy/go-helper"
 	"time"
 )
 
